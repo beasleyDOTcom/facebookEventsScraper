@@ -1,7 +1,10 @@
 'use strict';
 // SPECIAL THANKS TO CHANCE HARMON FOR DEMONSTRATING THE TUTORIAL.
 const puppeteer = require('puppeteer');
-(async () => {
+
+console.log('made it into getEvents.js')
+async function hitFacebook(username){
+    console.log('INSIDE OF HIT FACEBOOK FUNCTION')
     // PRAYING HANDS --> THANK YOU --> THIS FUNCTION WAS TAKEN FROM STACK OVERFLOW:  https://stackoverflow.com/a/53527984/15056018
     async function autoScroll(page){
         await page.evaluate(async () => {
@@ -27,7 +30,7 @@ const puppeteer = require('puppeteer');
 
     page.setUserAgent('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.114 Safari/537.36');
 
-    let url = 'https://www.facebook.com/beasleydotcom/events';
+    let url = `https://www.facebook.com/${username}/events`;
 
     await page.goto(url, { waitUntil: 'networkidle2'});
 
@@ -126,7 +129,9 @@ const puppeteer = require('puppeteer');
         results.push(await getDetails(eventIdArr[i]))
     }
 
-    console.log('  THIS IS RESULTS   ', results)
+    // console.log('  THIS IS RESULTS   ', results)
+    return results;
     await browser.close();
 
-})();
+}
+module.exports = hitFacebook;
