@@ -57,21 +57,18 @@ const puppeteer = require('puppeteer');
     let regex = /\/events\/\d+\//gi
     rawEventUrl = rawEventUrl.map(url => url.match(regex)[0]); // adding the [0] prevents creating unnecessary nesting of arrays. 
 
-    console.log('cheqeet             ', rawEventUrl.length)
+    let eventID = rawEventUrl.reduce((acc, val) => {
+        acc.push(val.slice(8, val.length-1))
+        return acc;
+    },[])
+    // OK, at this point we have an array of all the eventID's
+
+
+// next we want to get the formatted date with year
 
 
 
 
-
-
-    // let stats = await page.evaluate(() => {
-    //     let statValues = Array.from(document.querySelectorAll('.single-stat >.mobile > div > h4'), element => element.textContent)
-    //     let statLabels = [...document.querySelectorAll('.single-stat >.mobile > div > h5 > a')].map(label => {
-    //         return label.textContent;
-    //     });
-
-    //     return { stats: statValues, labls: statLabels };
-    // })
     await browser.close();
 
 })();
