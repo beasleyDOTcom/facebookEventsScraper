@@ -9,10 +9,10 @@ async function hitFacebook(username){
     async function autoScroll(page){
         await page.evaluate(async () => {
             await new Promise((resolve, reject) => {
-                var totalHeight = 0;
-                var distance = 100;
-                var timer = setInterval(() => {
-                    var scrollHeight = document.body.scrollHeight;
+                let totalHeight = 0;
+                let distance = 100;
+                let timer = setInterval(() => {
+                    let scrollHeight = document.body.scrollHeight;
                     window.scrollBy(0, distance);
                     totalHeight += distance;
 
@@ -40,15 +40,21 @@ async function hitFacebook(username){
     });
 
     await autoScroll(page);
-
-    await page.click("#expanding_cta_close_button");
+    try{
+        await page.click("#expanding_cta_close_button");
+    } catch{
+        console.error('NOT QUITE RITE')
+        return `Sorry this didn\'t work quite right. Consider testing this yourself by visiting \'https://facebook.com/${username}/events you should see the events for the given username --> If you don\'t, check to ensure that the user has events, and that they are set to PUBLIC`;
+    }
    
 //  SELECT ONE
+
     // let showWithMelanie = await page.evaluate(() => {
     //     // return document.querySelector('.emergencybanner > p').textContent;
     //     return document.querySelector('._51mx').textContent;
     // })
     // console.log(showWithMelanie);
+
 //  SELECT ALL
     let rawEventUrl = await page.evaluate(() => {
 // TWO WAYS OF ACHEIVING THE SAME THING:
@@ -67,71 +73,62 @@ async function hitFacebook(username){
 
 // OK, at this point we have an array of all the eventID's
 
-// next we want to get the formatted date with year
+// next we want to get the details of each event.. date formatted date with year etc.
 
+    async function getEventDetails(eventId){
+        try{
 
-//8888888888888888888888888888888888888888888888888888888888888888
+            let individualEventUrl = 'https://www.facebook.com/events/' + eventId;
 
-// let individualEventUrl = 'https://www.facebook.com/events/' + eventIdArr[0];
+            await page.goto(individualEventUrl, { waitUntil: 'networkidle2'});
+        
+            await page.setViewport({
+                width:1200,
+                height:800
+            });
+        
+            let title = await page.evaluate(() => {
+                return document.querySelector('#seo_h1_tag').textContent;
+            });
 
-// await page.goto(individualEventUrl, { waitUntil: 'networkidle2'});
+            let imageUrl = await page.evaluate(()=>{
+                return document.querySelector('img').src;
+            });
 
-// await page.setViewport({
-//     width:1200,
-//     height:800
-// });
+            let dateTime = await page.evaluate(() => {
+                return document.querySelector('._xkh > :first-child').textContent;
+            });
 
-// let title = await page.evaluate(() => {
-//     return document.querySelector('#seo_h1_tag').textContent;
-// })
-//         let imageUrl = await page.evaluate(()=>{
-//             return document.querySelector('img').src;
-//         })
+            let urlsFromDescription = await page.evaluate(()=>{
+                return Array.from(document.querySelectorAll('._63ew > span > a'), element => element.innerText);
+            });
+            // let venueName = document.querySelector('._3xd0._3slj > div > :first-child > tbody > tr > :last-child > div > div > div > :nth-child(2) > div > a').innerText;
+            // let venueLocation = document.querySelector('._3xd0._3slj > div > :first-child > tbody > tr > :last-child > div > div > div > :nth-child(2) > div > div').innerText;
 
-// console.log(title, imageUrl)
-
-
-//88888888888888888888888888888888888888888888888888888888888888
-
-    async function getDetails(eventId){
-
-        let individualEventUrl = 'https://www.facebook.com/events/' + eventId;
-
-        await page.goto(individualEventUrl, { waitUntil: 'networkidle2'});
-    
-        await page.setViewport({
-            width:1200,
-            height:800
-        });
-       
-        let title = await page.evaluate(() => {
-            return document.querySelector('#seo_h1_tag').textContent;
-        })
-
-        let imageUrl = await page.evaluate(()=>{
-            return document.querySelector('img').src;
-        })
-
-        let dateTime = await page.evaluate(() => {
-            return document.querySelector('._xkh > :first-child').textContent
-        })
-        let obj = {
-            title,
-            eventId,
-            imageUrl,
-            dateTime,
+            let obj = {
+                title,
+                eventId,
+                imageUrl,
+                dateTime,
+                urlsFromDescription,
+                venueName,
+                venueLocation,
+            }; 
+            return obj;           
+        } catch {
+            console.error()
         }
-        return obj;
+
+       
     }
 
     let results = [];
-    for(let i = 0; i < eventIdArr.length; i++){
-        results.push(await getDetails(eventIdArr[i]))
+    for(let url of eventIdArr){
+        results.push(await getEventDetails(url));
     }
 
-    // console.log('  THIS IS RESULTS   ', results)
-    return results;
     await browser.close();
+    return results;
 
 }
 module.exports = hitFacebook;
