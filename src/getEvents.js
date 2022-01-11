@@ -103,6 +103,8 @@ console.log("Event Id's " + eventIdArr);
         let imageUrl;
         let dateTime;
         let urlsFromDescription;
+        let venueName;
+        let venueLocation;
         try{
 
             let individualEventUrl = 'https://www.facebook.com/events/' + eventId;
@@ -136,8 +138,8 @@ console.log("Event Id's " + eventIdArr);
                 return Array.from(document.querySelectorAll('._63ew > span > a'), element => element.innerText);
             });
             console.log("urlsFromDescription: " + urlsFromDescription);
-            // let venueName = document.querySelector('._3xd0._3slj > div > :first-child > tbody > tr > :last-child > div > div > div > :nth-child(2) > div > a').innerText;
-            // let venueLocation = document.querySelector('._3xd0._3slj > div > :first-child > tbody > tr > :last-child > div > div > div > :nth-child(2) > div > div').innerText;
+            venueName = document.querySelector('._3xd0._3slj > div > :first-child > tbody > tr > :last-child > div > div > div > :nth-child(2) > div > a').innerText;
+            venueLocation = document.querySelector('._3xd0._3slj > div > :first-child > tbody > tr > :last-child > div > div > div > :nth-child(2) > div > div').innerText;
 
             let obj = {
                 title,
@@ -145,15 +147,15 @@ console.log("Event Id's " + eventIdArr);
                 imageUrl,
                 dateTime,
                 urlsFromDescription,
-                // venueName, where are these??
-                // venueLocation,
+                venueName,
+                venueLocation,
             }; 
             console.log("this are the details of an event: " + obj);
             return obj;           
         } catch {
             console.error("error in getEventDetails with eventId: " + eventId + " title: "+title + "eventId: " +eventId + 
-            "image url: " + imageUrl + " datetime: "+dateTime +" urlsFromDesc: " + urlsFromDescription );
-            // + "venueName: " + venueName + " venueLocation: " + venueLocation
+            "image url: " + imageUrl + " datetime: "+dateTime +" urlsFromDesc: " + urlsFromDescription + "venueName: " + venueName + " venueLocation: " + venueLocation);
+            // 
         }
     }
 
@@ -161,7 +163,11 @@ console.log("Event Id's " + eventIdArr);
     for(let url of eventIdArr){
         results.push(await getEventDetails(url));
     }
-
+    for(let i = 0; i< results.length; i++){
+        if (results[i] === undefined){
+            console.log(eventIdArr[i])
+        }
+    }
     await browser.close();
     return results;
 
