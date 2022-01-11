@@ -1,0 +1,32 @@
+{
+  "name": "facebookeventsscraper",
+  "version": "1.0.0",
+  "description": "expects a valid username as a query exampleurl localhost  url... /api/v1?username=goodtimes the puppet goes to the profile of that username, goes to events, collects all of the eventId's of that profile, and then goes to each event page and collects relevant details to define an event object. when every event has been visited, the puppet returns an array containing each event object as the request body.",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/beasleyDOTcom/facebookEventsScraper.git"
+  },
+  "keywords": [
+    "puppet",
+    "puppeteer",
+    "facebook",
+    "events",
+    "scraper"
+  ],
+  "author": "beasleydotcom",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/beasleyDOTcom/facebookEventsScraper/issues"
+  },
+  "homepage": "https://github.com/beasleyDOTcom/facebookEventsScraper#readme",
+  "dependencies": {
+    "dotenv": "^10.0.0",
+    "express": "^4.17.2",
+    "puppeteer": "^13.0.1"
+  }
+}
