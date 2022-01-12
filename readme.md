@@ -1,0 +1,3 @@
+- [ ] grab venue name and location and href if available.
+- [ ] use these to build an event object to which getDetails() will add more definitions. 
+- [ ] update getDetails() to reference eventObj.eventId as opposed to the array just containing eventId's.
