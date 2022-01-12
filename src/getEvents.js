@@ -84,30 +84,30 @@ async function hitFacebook(username){
     let regex = /\/events\/\d+\//gi
     rawEventUrl = rawEventUrl.map(url => url.match(regex)[0]); // adding the [0] prevents creating unnecessary nesting of arrays. 
 
-    let eventIdArr = rawEventUrl.reduce((acc, val) => {
-        acc.push(val.slice(8, val.length-1))
+    let arrayOfEventObjects = rawEventUrl.reduce((acc, val) => {
+        acc.push({ID: val.slice(8, val.length-1)})
         return acc;
     },[])
-console.log("Event Id's " + eventIdArr);
+console.log("Event Id's " + arrayOfEventObjects);
 // to test the gathering of event id's related to a particular username uncomment the next couple lines so to return just these results.
 // await browser.close();
 // return eventIdArr;
 
 
-// OK, at this point we have an array of all the eventID's
-
+// OK, at this point we have an array of all the eventeventID's
+// next we want to 
 // next we want to get the details of each event.. date formatted date with year etc.
 
-    async function getEventDetails(eventId){
-        let title ;
-        let imageUrl;
-        let dateTime;
-        let urlsFromDescription;
-        let venueName;
-        let venueLocation;
+    async function getEventDetails(eventObj){
+        // let title ;
+        // let imageUrl;
+        // let dateTime;
+        // let urlsFromDescription;
+        // let venueName;
+        // let venueUrl;
         try{
 
-            let individualEventUrl = 'https://www.facebook.com/events/' + eventId;
+            let individualEventUrl = 'https://www.facebook.com/events/' + eventObj.ID;
             console.log("this is the individual event url: " + individualEventUrl);
             
             await page.goto(individualEventUrl, { waitUntil: 'networkidle2'});
@@ -117,55 +117,54 @@ console.log("Event Id's " + eventIdArr);
                 height:800
             });
             console.log("made it past set view port");
-        
-            title = await page.evaluate(() => {
+            eventObj.individualEventUrl = individualEventUrl;
+            eventObj.title = await page.evaluate(() => {
                 console.log("results of page evaluation of #seo_h1_tag: " + document.querySelector('#seo_h1_tag').textContent);
                 return document.querySelector('#seo_h1_tag').textContent;
             });
-            console.log("title: " + title)
+            console.log("title: " + eventObj.title)
 
-            imageUrl = await page.evaluate(()=>{
+            eventObj.imageUrl = await page.evaluate(()=>{
                 return document.querySelector('img').src;
             });
-            console.log("image url: " + imageUrl);
-
-            dateTime = await page.evaluate(() => {
+            console.log("image url: " + eventObj.imageUrl);
+console.log('RESULTS:                                     ' + await page.evaluate(() => {
+    return document.querySelector('._xkh > :first-child').textContent;
+}))
+            eventObj.dateTime = await page.evaluate(() => {
                 return document.querySelector('._xkh > :first-child').textContent;
             });
-            console.log("datetime: " + dateTime);
+            console.log("datetime: " + eventObj.dateTime);
 
-            urlsFromDescription = await page.evaluate(()=>{
+            eventObj.urlsFromDescription = await page.evaluate(()=>{
                 return Array.from(document.querySelectorAll('._63ew > span > a'), element => element.innerText);
             });
-            console.log("urlsFromDescription: " + urlsFromDescription);
-            venueName = document.querySelector('._3xd0._3slj > div > :first-child > tbody > tr > :last-child > div > div > div > :nth-child(2) > div > a').innerText;
-            venueLocation = document.querySelector('._3xd0._3slj > div > :first-child > tbody > tr > :last-child > div > div > div > :nth-child(2) > div > div').innerText;
+            console.log("urlsFromDescription: " + eventObj.urlsFromDescription);
+            eventObj.venueName = await page.evaluate(() => {
+                return  document.querySelector('._xkh > a').textContent;
+            });
+           
+            eventObj.venueUrl = await page.evaluate(() => {
+                return document.querySelector('._xkh > a').href;
+            });
 
-            let obj = {
-                title,
-                eventId,
-                imageUrl,
-                dateTime,
-                urlsFromDescription,
-                venueName,
-                venueLocation,
-            }; 
+console.log("88888888888888888888888 " + eventObj.venueName + "((((((((((((((((((((" + eventObj.venueUrl)
             console.log("this are the details of an event: " + obj);
-            return obj;           
+            return eventObj;           
         } catch {
-            console.error("error in getEventDetails with eventId: " + eventId + " title: "+title + "eventId: " +eventId + 
-            "image url: " + imageUrl + " datetime: "+dateTime +" urlsFromDesc: " + urlsFromDescription + "venueName: " + venueName + " venueLocation: " + venueLocation);
+            console.error("error in getEventDetails with eventId: " + eventObj + " title: "+eventObj.title + "eventId: " +eventObj.ID + 
+            "image url: " + eventObj.imageUrl + " datetime: "+eventObj.dateTime +" urlsFromDesc: " + eventObj.urlsFromDescription + "venueName: " + eventObj.venueName + " venueLocation: " + eventObj.venueUrl);
             // 
         }
     }
 
     let results = [];
-    for(let url of eventIdArr){
-        results.push(await getEventDetails(url));
+    for(let event of arrayOfEventObjects){
+        results.push(await getEventDetails(event));
     }
     for(let i = 0; i< results.length; i++){
         if (results[i] === undefined){
-            console.log(eventIdArr[i])
+            console.log(arrayOfEventObjects[i])
         }
     }
     await browser.close();
