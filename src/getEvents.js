@@ -175,18 +175,19 @@ async function hitFacebook(username) {
             // console.log("this are the details of an event: " + obj);
         } catch {
             console.error("error in getEventDetails with eventId: " + eventObj + " title: " + eventObj.title + "eventId: " + eventObj.ID +
-                "image url: " + eventObj.imageUrl + " datetime: " + eventObj.dateTime + " urlsFromDesc: " + eventObj.urlsFromDescription + "venueName: " + eventObj.venueName + " venueLocation: " + eventObj.venueUrl);
+                "image url: " + eventObj.image + " datetime: " + eventObj.dateTime + " urlsFromDesc: " + eventObj.urlsFromDescription + "venueName: " + eventObj.venueName + " venueLocation: " + eventObj.venueUrl);
         }
         return eventObj;
     }
 
     let results = [];
+    console.log("__________________________" + getEventDetails({ID:"1083534639057132"}))
     for (let event of arrayOfEventObjects) {
         results.push(await getEventDetails(event));
     }
     for (let i = 0; i < results.length; i++) {
-        if (results[i] === undefined) {
-            console.log(arrayOfEventObjects[i])
+        if (results[i].title === undefined) {
+            console.log(arrayOfEventObjects[i.ID])
         }
     }
     await browser.close();
