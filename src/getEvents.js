@@ -120,61 +120,74 @@ async function hitFacebook(username) {
             eventObj.individualEventUrl = individualEventUrl;
 
             eventObj.title = await page.evaluate(() => {
-                return document.querySelector('#seo_h1_tag').textContent;
-            });
-            console.log("title: " + eventObj.title)
-            eventObj.pageTitle = await page.evaluate(() => {
-                return document.querySelector('#pageTitle').textContent;
-            })
-            console.log("this is pageTitle:    " + eventObj.pageTitle);
-            
-            eventObj.imageUrl = await page.evaluate(() => {
-                return document.querySelector('img').src;
-            });
-            console.log("image url: " + eventObj.imageUrl);
+                return document.title ? document.title :
+                document.querySelector('#pageTitle').textContent ? document.querySelector('#pageTitle').textContent :
+                document.querySelector('#seo_h1_tag').textContent ? document.querySelector('#seo_h1_tag').textContent : null;
+            }) 
 
-            // get preview image
-            eventObj.previewImage = await page.evaluate(() => {
-                return document.querySelector('meta[property="og:image"]').content;
-            })
-            console.log("PREVIEW IMAGE: " + eventObj.previewImage);
+            // eventObj.pageTitle ? console.log("this is pageTitle:    " + eventObj.pageTitle) : page.Title = null;
             
-            console.log('RESULTS:                                     ' + await page.evaluate(() => {
-                return document.querySelector('._xkh > :first-child').textContent;
-            }))
+            
+            // get preview image
+            eventObj.image = await page.evaluate(() => {
+                return document.querySelector('meta[property="og:image"]').content ? document.querySelector('meta[property="og:image"]').content :
+                document.querySelector('img[data-imgperflogname]="profileCoverPhoto"').src ? document.querySelector('img[data-imgperflogname]="profileCoverPhoto"').src : null;
+            })
+
+            // eventObj.imageUrl = await page.evaluate(() => {
+            //     return document.querySelector('img').src;
+            // }) | null;
+            // eventObj.imageUrl ? console.log("image url: " + eventObj.imageUrl): eventObj.imageUrl = null ;
+
+
+            
+            // eventObj.title = await page.evaluate(() => {
+            //     return document.querySelector('#seo_h1_tag').textContent;
+            // });
+            eventObj.title ? console.log("title: " + eventObj.title):  eventObj.title = null ;
+            // console.log('RESULTS:                                     ' + await page.evaluate(() => {
+            //     return document.querySelector('._xkh > :first-child').textContent;
+            // }))
             eventObj.dateTime = await page.evaluate(() => {
-                return document.querySelector('._xkh > :first-child').textContent;
-            });
-            console.log("datetime: " + eventObj.dateTime);
+                return document.querySelector('._xkh > :first-child').textContent ? document.querySelector('._xkh > :first-child').textContent : null;
+            }) 
+            // eventObj.dateTime ? console.log("datetime: " + eventObj.dateTime) : eventObj.dateTime = null;
 
             eventObj.urlsFromDescription = await page.evaluate(() => {
                 return Array.from(document.querySelectorAll('._63ew > span > a'), element => element.innerText);
             });
-            console.log("urlsFromDescription: " + eventObj.urlsFromDescription);
+            eventObj.urlsFromDescription ? console.log("urlsFromDescription: " + eventObj.urlsFromDescription) : eventObj.urlsFromDescription = null;
             eventObj.venueName = await page.evaluate(() => {
-                return document.querySelector('._xkh > a').textContent;
-            });
+                return document.querySelector('._xkh > a').textContent ? document.querySelector('._xkh > a').textContent :
+                document.querySelector('div[role="main"]:nth-child(2) > div  > div:nth-child(1) > div:nth-child(2) > div > div > div > div > div:nth-child(2) > div > div > div > div:nth-child(2) > div > div > a > div > div:nth-child(2) > div > div > div > div > span > span > span > span').innerText ?
+                document.querySelector('div[role="main"]:nth-child(2) > div  > div:nth-child(1) > div:nth-child(2) > div > div > div > div > div:nth-child(2) > div > div > div > div:nth-child(2) > div > div > a > div > div:nth-child(2) > div > div > div > div > span > span > span > span').innerText : null;
+            })
+            // eventObj.venueName ? console.log(eventObj.venueName) : eventObj.venueName = null;
 
             eventObj.venueUrl = await page.evaluate(() => {
-                return document.querySelector('._xkh > a').href;
+                return document.querySelector('._xkh > a').href ? document.querySelector('._xkh > a').href :
+                document.querySelector('div[role="main"]:nth-child(2) > div  > div:nth-child(1) > div:nth-child(2) > div > div > div > div > div:nth-child(2) > div > div > div > div:nth-child(2) > div > div > a').href ?
+                document.querySelector('div[role="main"]:nth-child(2) > div  > div:nth-child(1) > div:nth-child(2) > div > div > div > div > div:nth-child(2) > div > div > div > div:nth-child(2) > div > div > a').href : null;
             });
+            // eventObj.venueUrl ? console.log(eventObj.venueUrl) : eventObj.venueUrl = null;
 
             // console.log("88888888888888888888888 " + eventObj.venueName + "((((((((((((((((((((" + eventObj.venueUrl)
             // console.log("this are the details of an event: " + obj);
         } catch {
             console.error("error in getEventDetails with eventId: " + eventObj + " title: " + eventObj.title + "eventId: " + eventObj.ID +
-                "image url: " + eventObj.imageUrl + " datetime: " + eventObj.dateTime + " urlsFromDesc: " + eventObj.urlsFromDescription + "venueName: " + eventObj.venueName + " venueLocation: " + eventObj.venueUrl);
+                "image url: " + eventObj.image + " datetime: " + eventObj.dateTime + " urlsFromDesc: " + eventObj.urlsFromDescription + "venueName: " + eventObj.venueName + " venueLocation: " + eventObj.venueUrl);
         }
         return eventObj;
     }
 
     let results = [];
+    console.log("__________________________" + getEventDetails({ID:"1083534639057132"}))
     for (let event of arrayOfEventObjects) {
         results.push(await getEventDetails(event));
     }
     for (let i = 0; i < results.length; i++) {
-        if (results[i] === undefined) {
-            console.log(arrayOfEventObjects[i])
+        if (results[i].title === undefined) {
+            console.log(arrayOfEventObjects[i.ID])
         }
     }
     await browser.close();
