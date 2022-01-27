@@ -25,14 +25,17 @@ app.get('/api/v1/', async (req, res) => {
      
     if ( userDoesExist ) {
         // if so, res.write what you have, 
-        userInfo = await getOneUser(username).performances;
-        res.write(userInfo);
+        console.log("********************* user does exist");
+        userInfo = await getOneUser(username);
+        userInfo = JSON.parse(userInfo);
+        console.log("USER INFO: ********************** " + userInfo)
+        await res.write(JSON.stringify(userInfo.performances));
     } 
 
     let arrayOfEventObjects = await getEvents(req.query.username.toLowerCase());
     
     if ( !userDoesExist ) {
-        res.write(arrayOfEventObjects);
+        res.write(JSON.stringify(arrayOfEventObjects));
 
         // add whole user to database
         await insertOneUser(username, arrayOfEventObjects);
@@ -128,10 +131,10 @@ async function getOneUser(username){
 
         // const beSilly = await collection.insertOne(oneUser);
 
-        const oneUser = await collection.find({_id:{ username }});
+        const oneUser = await collection.findOne({_id: username });
 
-        console.log("EVERYTHING WENT SMOOTH(y)LY :^{p")
-        return oneUser.performances;
+        console.log("EVERYTHING WENT SMOOTH(y)LY :^{p" + JSON.stringify(oneUser));
+        return JSON.stringify(oneUser);
     } catch (err) {
         console.log('a ROAR produced: ' + err);
         return err;
@@ -140,16 +143,20 @@ async function getOneUser(username){
         await client.close();
     }
 }
+
 async function userExists( username ) {
+    console.log("INSIDE OF USEREXISTS");
     try {
         await client.connect().catch(reason => console.log("this was the reason: " + reason));
-        console.log("dbco necked Ted ");
+        console.log("CHECKING IF USER EXISTS");
 
         const db = client.db("pacificeventsdb");
         let collection = db.collection("users");
-        console.log("went full jamba-juice on " + username );
+        console.log("WANT full jamba-juice on " + username );
 
-        return await collection.indexExists({_id:{ username }});
+        let results = await collection.find({_id : username }).count();
+        console.log("RESULTSSSSSSSSSSSSSSSSS: " + results);
+        return results;
 
     } catch (err) {
         console.log('a ROAR produced: ' + err);
@@ -159,7 +166,8 @@ async function userExists( username ) {
         await client.close();
     }
 }
-async function updateUser(username){
+
+async function updateUser( username, arrayOfEventObjects, userInfo ){
     try {
         await client.connect().catch(reason => console.log("this was the reason: " + reason));
         console.log("dbco necked Ted ");
@@ -170,7 +178,7 @@ async function updateUser(username){
 
         // const beSilly = await collection.insertOne(oneUser);
 
-        const oneUser =  await collection.findOne({_id:{ username }});
+        const oneUser =  await collection.findOne({_id: username });
         
         console.log("EVERYTHING WENT SMOOTH(y)LY :^{p")
         return oneUser;
