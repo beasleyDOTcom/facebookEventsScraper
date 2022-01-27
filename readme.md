@@ -3,13 +3,13 @@
 - [x] update getDetails() to reference eventObj.eventId as opposed to the array just containing eventId's.
 - [x] init react page to display the info in each event object
 - [x] start with dummy data
-- [ ] utilize fb metadata first, then extend outside of that if need be.
-- [ ] grab preview image from metadata
+- [x] utilize fb metadata first, then extend outside of that if need be.
+- [x] grab preview image from metadata
 - [ ] bulk up error handling to avoid unhandled promise rejections.
-- [ ] decide how to handle data --> store 
-- [ ] if we group results by each username, we could use database for initial results and then update store / database when crawler finishes its work. 
-- [ ] group results by each username
-- [ ] use database for initial results
-- [ ] then update store / database when crawler finishes its work
+- [x] decide how to handle data --> store 
+- [x] if we group results by each username, we could use database for initial results and then update store / database when crawler finishes its work. 
+- [x] group results by each username
+- [x] use database for initial results
+- [x] then update store / database when crawler finishes its work
 - [ ] refactor
 - [ ] deploy
