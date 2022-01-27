@@ -16,8 +16,8 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 
 
 app.get('/api/v1/', async (req, res) => {
-    let username= req.query.username.toLowerCase();
-    let userDoesExist = userExists(username);
+    let username = req.query.username.toLowerCase();
+    let userDoesExist = await userExists(username);
     let userInfo;
     console.log('req.query', req.query.username);
     // retrieve all events from facebook. 
@@ -48,12 +48,13 @@ app.get('/api/v1/', async (req, res) => {
                 return res.end();
             } else {
                 // add all new events
-                while ( startingIndex < arrayOfEventObjects.length ) {
+                await updateUser ( username, arrayOfEventObjects, userInfo );
+                // while ( startingIndex < arrayOfEventObjects.length ) {
 
-                    await insertOneUser(username, arrayOfEventObjects[startingIndex]);
-                    arrayOfEventObjects++;
+                //     await updateUser(username, arrayOfEventObjects[startingIndex]);
+                //     arrayOfEventObjects++;
 
-                }
+                // }
                 return res.end();
             }
         } else {
@@ -74,8 +75,7 @@ app.get('/api/v1/', async (req, res) => {
         // else strictly equal == no further work required.
     // else add whole user to database
 
-    res.send();
-    await debugger.close();
+    return res.end();
 });
 
 let oneUser = {
