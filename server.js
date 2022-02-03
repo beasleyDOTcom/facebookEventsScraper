@@ -15,9 +15,35 @@ const uri = `mongodb+srv://${ DB_USERNAME }:${ DB_PASSWORD }@pacificeventsdb.10h
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 
 
+app.get('/api/v2/getSeedData', async (req, res) => {
+    let username = req.query.username.toLowerCase();
+    let userDoesExist = await userExists(username);
+    let userInfo;
+    console.log('req.query', req.query.username);
+ 
+      // does user exist in database?
+     
+    if ( userDoesExist ) {
+        // if so, send what you have, 
+        console.log("********************* user does exist in database");
+        userInfo = await getOneUser(username);
+        userInfo = JSON.parse(userInfo);
+        console.log("USER INFO: ********************** " + userInfo)
+        res.newUser = false;
+        await res.end(JSON.stringify(userInfo.performances));
+    } 
+    if ( !userDoesExist ) {
+        console.log("user does  N O T  exist in database");
+        let arrayOfEventObjects = await getEvents(req.query.username.toLowerCase());
+        res.newUser = true;
+        await res.end(JSON.stringify(arrayOfEventObjects));
 
-app.get('/api/v1/', async (req, res) => {
-    console.log("R E Q U E S T : ------------------------------------ " + JSON.stringify(req.headers))
+        // add whole user to database
+        return await insertOneUser(username, arrayOfEventObjects);
+    } 
+});
+app.get('/api/v2/getLatestResults', async (req, res) => {
+
     let username = req.query.username.toLowerCase();
     let userDoesExist = await userExists(username);
     let userInfo;
@@ -30,44 +56,34 @@ app.get('/api/v1/', async (req, res) => {
         console.log("********************* user does exist");
         userInfo = await getOneUser(username);
         userInfo = JSON.parse(userInfo);
-        console.log("USER INFO: ********************** " + userInfo)
-        await res.write(JSON.stringify(userInfo.performances));
-    } 
+    } else {
+        return res.status(404).end();
+    }
 
     let arrayOfEventObjects = await getEvents(req.query.username.toLowerCase());
     
-    if ( !userDoesExist ) {
-        res.write(JSON.stringify(arrayOfEventObjects));
 
-        // add whole user to database
-        await insertOneUser(username, arrayOfEventObjects);
-        return res.end();    
-    } else {
-
-        if ( arrayOfEventObjects !== userInfo ) {
-        // if not strictly equal, which performances need to be added?
-            let lastEventInDb = userInfo[userInfo.length-1];
-            let startingIndex = arrayOfEventObjects.indexOf(lastEventInDb) + 1;
-            if ( startingIndex >= arrayOfEventObjects.length ) {
-                //events array is different but no new event needs to be added
-                return res.end();
-            } else {
-                // add all new events
-                await updateUser ( username, arrayOfEventObjects, userInfo );
-                // while ( startingIndex < arrayOfEventObjects.length ) {
-
-                //     await updateUser(username, arrayOfEventObjects[startingIndex]);
-                //     arrayOfEventObjects++;
-
-                // }
-                return res.end();
-            }
+    if ( arrayOfEventObjects !== userInfo ) {
+    // if not strictly equal, which performances need to be added?
+    console.log("not strictly equal, which performances need to be added?");
+        let lastEventInDb = userInfo[userInfo.length-1];
+        let startingIndex = arrayOfEventObjects.indexOf(lastEventInDb) + 1;
+        if ( startingIndex >= arrayOfEventObjects.length ) {
+            //events array is different but no new event needs to be added
+            console.log("events array is different but no new event needs to be added");
+            return res.status(200).end(userInfo);
         } else {
-            // else strictly equal == no further work required.
-            return res.end();
+            // add all new events
+            await updateUser ( username, arrayOfEventObjects, userInfo );
+            console.log("added all new events to database");
+            userInfo = await getOneUser(username);
+            return res.status(200).end(userInfo);
         }
-
+    } else {
+        // else strictly equal == no further work required.
+        return res.status(200).end(userInfo);
     }
+
 
    
 
