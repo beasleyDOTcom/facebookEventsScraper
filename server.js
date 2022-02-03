@@ -2,11 +2,12 @@
 require('dotenv').config();
 const { MongoClient } = require('mongodb');
 const express = require('express');
+const cors = require('cors');
 const getEvents = require('./src/getEvents.js');
 
 const PORT = process.env.PORT;
 const app = express();
-
+app.use(cors());
 const DB_USERNAME = process.env.DB_USERNAME;
 const DB_PASSWORD = process.env.DB_PASSWORD;
 const uri = `mongodb+srv://${ DB_USERNAME }:${ DB_PASSWORD }@pacificeventsdb.10hpw.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
@@ -16,6 +17,7 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 
 
 app.get('/api/v1/', async (req, res) => {
+    console.log("R E Q U E S T : ------------------------------------ " + JSON.stringify(req.headers))
     let username = req.query.username.toLowerCase();
     let userDoesExist = await userExists(username);
     let userInfo;
