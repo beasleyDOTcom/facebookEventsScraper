@@ -27,15 +27,15 @@ app.get('/api/v2/getSeedData', async (req, res) => {
         // if so, send what you have, 
         console.log("********************* user does exist in database");
         userInfo = await getOneUser(username);
-        userInfo = JSON.parse(userInfo);
+        userInfo = JSON.parse(userInfo).performances;
         console.log("USER INFO: ********************** " + userInfo)
-        res.newUser = false;
-        await res.end(JSON.stringify(userInfo.performances));
+
+        await res.end(JSON.stringify(userInfo));
     } 
     if ( !userDoesExist ) {
         console.log("user does  N O T  exist in database");
-        let arrayOfEventObjects = await getEvents(req.query.username.toLowerCase());
-        res.newUser = true;
+        let arrayOfEventObjects = await getEvents(req.query.username.toLowerCase(), true);
+        
         await res.end(JSON.stringify(arrayOfEventObjects));
 
         // add whole user to database
@@ -51,16 +51,20 @@ app.get('/api/v2/getLatestResults', async (req, res) => {
     // retrieve all events from facebook. 
       // does user exist in database?
      
-    if ( userDoesExist ) {
-        // if so, res.write what you have, 
-        console.log("********************* user does exist");
-        userInfo = await getOneUser(username);
-        userInfo = JSON.parse(userInfo);
-    } else {
+    if ( !userDoesExist ) {
         return res.status(404).end();
     }
+    // then user does exist, send what you have, 
+    console.log("********************* user does exist");
+    
+    userInfo = await getOneUser(username);
+    console.log("THIS IS USERINFO BEFORE ANYTHING: " + userInfo)
+    userInfo = JSON.parse(userInfo).performances;
 
-    let arrayOfEventObjects = await getEvents(req.query.username.toLowerCase());
+
+    let lastKnownEventId = userInfo[userInfo.length-1].ID
+    console.log("THIS IS LAST KNOWN IN SERVER.JS: " + lastKnownEventId)
+    let arrayOfEventObjects = await getEvents(req.query.username.toLowerCase(), false, lastKnownEventId);
     
 
     if ( arrayOfEventObjects !== userInfo ) {
@@ -71,17 +75,18 @@ app.get('/api/v2/getLatestResults', async (req, res) => {
         if ( startingIndex >= arrayOfEventObjects.length ) {
             //events array is different but no new event needs to be added
             console.log("events array is different but no new event needs to be added");
-            return res.status(200).end(userInfo);
+            return res.status(200).end(JSON.stringify(userInfo));
         } else {
             // add all new events
             await updateUser ( username, arrayOfEventObjects, userInfo );
             console.log("added all new events to database");
             userInfo = await getOneUser(username);
-            return res.status(200).end(userInfo);
+            userInfo = JSON.parse(userInfo).performances
+            return res.status(200).end(JSON.stringify(userInfo));
         }
     } else {
         // else strictly equal == no further work required.
-        return res.status(200).end(userInfo);
+        return res.status(200).end(JSON.stringify(userInfo));
     }
 
 

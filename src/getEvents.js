@@ -3,7 +3,7 @@
 const puppeteer = require('puppeteer');
 
 console.log('made it into getEvents.js')
-async function hitFacebook(username) {
+async function hitFacebook(username, allDataNeeded, lastKnownEventId ) {
     console.log('INSIDE OF HIT FACEBOOK FUNCTION')
     // PRAYING HANDS --> THANK YOU --> THIS FUNCTION WAS TAKEN FROM STACK OVERFLOW:  https://stackoverflow.com/a/53527984/15056018
     async function autoScroll(page) {
@@ -88,6 +88,15 @@ async function hitFacebook(username) {
         acc.push({ ID: val.slice(8, val.length - 1) })
         return acc;
     }, [])
+
+    console.log("event id's before filtering out unneeded id's" + arrayOfEventObjects);
+    if(!allDataNeeded){
+        let tempArray = [];
+        for(let i = arrayOfEventObjects.indexOf(lastKnownEventId)+1; i < arrayOfEventObjects.length; i++) {
+            tempArray.push(arrayOfEventObjects[i]);
+        }
+        arrayOfEventObjects = tempArray;
+    }
     console.log("Event Id's " + arrayOfEventObjects);
     // to test the gathering of event id's related to a particular username uncomment the next couple lines so to return just these results.
     // await browser.close();
@@ -182,14 +191,18 @@ async function hitFacebook(username) {
 
     let results = [];
     console.log("__________________________" + getEventDetails({ID:"1083534639057132"}))
-    for (let event of arrayOfEventObjects) {
-        results.push(await getEventDetails(event));
+    // order array of events so that oldest event is at index 0 and every new event will be added onto the end of array. 
+    for(let i = arrayOfEventObjects.length -1; i >= 0; i--) {
+        results.push(await getEventDetails(arrayOfEventObjects[i]));
     }
-    for (let i = 0; i < results.length; i++) {
-        if (results[i].title === undefined) {
-            console.log(arrayOfEventObjects[i.ID])
-        }
-    }
+    // for (let event of arrayOfEventObjects) {
+    //     results.push(await getEventDetails(event));
+    // }
+    // for (let i = 0; i < results.length; i++) {
+    //     if (results[i].title === undefined) {
+    //         console.log(arrayOfEventObjects[i.ID])
+    //     }
+    // }
     await browser.close();
     return results;
 
