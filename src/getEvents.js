@@ -2,8 +2,7 @@
 // SPECIAL THANKS TO CHANCE HARMON FOR DEMONSTRATING THE TUTORIAL.
 const puppeteer = require('puppeteer');
 
-console.log('made it into getEvents.js')
-async function hitFacebook(username, allDataNeeded, lastKnownEventId ) {
+async function hitFacebook(username, getAllEvents, lastKnownEventId ) {
     console.log('INSIDE OF HIT FACEBOOK FUNCTION')
     // PRAYING HANDS --> THANK YOU --> THIS FUNCTION WAS TAKEN FROM STACK OVERFLOW:  https://stackoverflow.com/a/53527984/15056018
     async function autoScroll(page) {
@@ -63,7 +62,7 @@ async function hitFacebook(username, allDataNeeded, lastKnownEventId ) {
     //     console.error('NOT QUITE RITE')
     //     return `Sorry this didn\'t work quite right. Consider testing this yourself by visiting \'https://facebook.com/${username}/events you should see the events for the given username --> If you don\'t, check to ensure that the user has events, and that they are set to PUBLIC`;
     // }
-    console.log('made it to line 49');
+    console.log('made it to line 65 inside of getEvents.js');
 
     //  SELECT ONE
 
@@ -89,15 +88,27 @@ async function hitFacebook(username, allDataNeeded, lastKnownEventId ) {
         return acc;
     }, [])
 
-    console.log("event id's before filtering out unneeded id's" + arrayOfEventObjects);
-    if(!allDataNeeded){
+    console.log("event id's before filtering out unneeded id's" + arrayOfEventObjects.length);
+    console.log("first: " + arrayOfEventObjects[0].ID + "          after: " + arrayOfEventObjects[arrayOfEventObjects.length-1].ID)
+    for(let i = 0; i < arrayOfEventObjects.length; i++){
+        console.log("i: " + i + "eventID: " + arrayOfEventObjects[i].ID)
+    }
+    if(!getAllEvents){
+        // which events do we need?
+        // 
+        // pam and tommy hulu
+        // cregga 
+        // murderville ? 
         let tempArray = [];
-        for(let i = arrayOfEventObjects.indexOf(lastKnownEventId)+1; i < arrayOfEventObjects.length; i++) {
-            tempArray.push(arrayOfEventObjects[i]);
+        let currentIndex = 0;
+        while(currentIndex < arrayOfEventObjects.length && arrayOfEventObjects[currentIndex].ID !== lastKnownEventId){
+            // while still in range (should never happen, but still) and we have not reached last known event id
+            tempArray.push(arrayOfEventObjects[currentIndex]);
+            currentIndex++;
         }
         arrayOfEventObjects = tempArray;
     }
-    console.log("Event Id's " + arrayOfEventObjects);
+    console.log("000000000000000000000000000000000000000       Event Id's " + arrayOfEventObjects);
     // to test the gathering of event id's related to a particular username uncomment the next couple lines so to return just these results.
     // await browser.close();
     // return eventIdArr;

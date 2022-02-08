@@ -7,7 +7,7 @@ const getEvents = require('./src/getEvents.js');
 
 const PORT = process.env.PORT;
 const app = express();
-app.use(cors());
+// app.use(cors());
 const DB_USERNAME = process.env.DB_USERNAME;
 const DB_PASSWORD = process.env.DB_PASSWORD;
 const uri = `mongodb+srv://${ DB_USERNAME }:${ DB_PASSWORD }@pacificeventsdb.10hpw.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
@@ -15,7 +15,7 @@ const uri = `mongodb+srv://${ DB_USERNAME }:${ DB_PASSWORD }@pacificeventsdb.10h
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 
 
-app.get('/api/v2/getSeedData', async (req, res) => {
+app.get('/api/v2/getSeedData', cors(), async (req, res) => {
     let username = req.query.username.toLowerCase();
     let userDoesExist = await userExists(username);
     let userInfo;
@@ -30,7 +30,7 @@ app.get('/api/v2/getSeedData', async (req, res) => {
         userInfo = JSON.parse(userInfo).performances;
         console.log("USER INFO: ********************** " + userInfo)
 
-        await res.end(JSON.stringify(userInfo));
+        return await res.end(JSON.stringify(userInfo));
     } 
     if ( !userDoesExist ) {
         console.log("user does  N O T  exist in database");
@@ -42,7 +42,7 @@ app.get('/api/v2/getSeedData', async (req, res) => {
         return await insertOneUser(username, arrayOfEventObjects);
     } 
 });
-app.get('/api/v2/getLatestResults', async (req, res) => {
+app.get('/api/v2/getLatestResults', cors(), async (req, res) => {
 
     let username = req.query.username.toLowerCase();
     let userDoesExist = await userExists(username);
@@ -63,7 +63,7 @@ app.get('/api/v2/getLatestResults', async (req, res) => {
 
 
     let lastKnownEventId = userInfo[userInfo.length-1].ID
-    console.log("THIS IS LAST KNOWN IN SERVER.JS: " + lastKnownEventId)
+    console.log("THIS IS LAST KNOWN eventID IN SERVER.JS: " + lastKnownEventId)
     let arrayOfEventObjects = await getEvents(req.query.username.toLowerCase(), false, lastKnownEventId);
     
 
