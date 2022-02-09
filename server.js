@@ -61,33 +61,44 @@ app.get('/api/v2/getLatestResults', cors(), async (req, res) => {
     console.log("THIS IS USERINFO BEFORE ANYTHING: " + userInfo)
     userInfo = JSON.parse(userInfo).performances;
 
-
     let lastKnownEventId = userInfo[userInfo.length-1].ID
     console.log("THIS IS LAST KNOWN eventID IN SERVER.JS: " + lastKnownEventId)
     let arrayOfEventObjects = await getEvents(req.query.username.toLowerCase(), false, lastKnownEventId);
-    
+    let lastEventIdFromFacebook = arrayOfEventObjects[arrayOfEventObjects.length - 1].ID ;
 
-    if ( arrayOfEventObjects !== userInfo ) {
-    // if not strictly equal, which performances need to be added?
-    console.log("not strictly equal, which performances need to be added?");
-        let lastEventInDb = userInfo[userInfo.length-1];
-        let startingIndex = arrayOfEventObjects.indexOf(lastEventInDb) + 1;
-        if ( startingIndex >= arrayOfEventObjects.length ) {
-            //events array is different but no new event needs to be added
-            console.log("events array is different but no new event needs to be added");
-            return res.status(200).end(JSON.stringify(userInfo));
-        } else {
-            // add all new events
-            await updateUser ( username, arrayOfEventObjects, userInfo );
-            console.log("added all new events to database");
-            userInfo = await getOneUser(username);
-            userInfo = JSON.parse(userInfo).performances
-            return res.status(200).end(JSON.stringify(userInfo));
-        }
+    if (lastKnownEventId === lastEventIdFromFacebook){
+        // nothing to do here
+        return res.status(200).end(JSON.stringify(userInfo).performances);
     } else {
-        // else strictly equal == no further work required.
-        return res.status(200).end(JSON.stringify(userInfo));
+        // update database with new results and return new document
+        let newDocumentFromUpdate = await updateUser(username, arrayOfEventObjects);
+        console.log("new docccccccccccccccccc:          " + newDocumentFromUpdate)
+        return res.status(200).end(JSON.stringify(newDocumentFromUpdate));
     }
+
+
+
+    // if ( arrayOfEventObjects !== userInfo ) {
+    // // if not strictly equal, which performances need to be added?
+    // console.log("not strictly equal, which performances need to be added?");
+    //     let lastEventInDb = userInfo[userInfo.length-1];
+    //     let startingIndex = arrayOfEventObjects.indexOf(lastEventInDb) + 1;
+    //     if ( startingIndex >= arrayOfEventObjects.length ) {
+    //         //events array is different but no new event needs to be added
+    //         console.log("events array is different but no new event needs to be added");
+    //         return res.status(200).end(JSON.stringify(userInfo));
+    //     } else {
+    //         // add all new events
+    //         await updateUser ( username, arrayOfEventObjects, userInfo );
+    //         console.log("added all new events to database");
+    //         userInfo = await getOneUser(username);
+    //         userInfo = JSON.parse(userInfo).performances
+    //         return res.status(200).end(JSON.stringify(userInfo));
+    //     }
+    // } else {
+    //     // else strictly equal == no further work required.
+    //     return res.status(200).end(JSON.stringify(userInfo));
+    // }
 
 
    
@@ -190,7 +201,7 @@ async function userExists( username ) {
     }
 }
 
-async function updateUser( username, arrayOfEventObjects, userInfo ){
+async function updateUser( username, arrayOfEventObjects ){
     try {
         await client.connect().catch(reason => console.log("this was the reason: " + reason));
         console.log("dbco necked Ted ");
@@ -199,11 +210,12 @@ async function updateUser( username, arrayOfEventObjects, userInfo ){
         let collection = db.collection("users");
         console.log("went full jamba-juice on " + username );
 
-        // const beSilly = await collection.insertOne(oneUser);
-
-        const oneUser =  await collection.findOne({_id: username });
+        const oneUser =  await collection.findOneAndUpdate(
+            {_id: username },
+            { $push: { performances : { $each : arrayOfEventObjects } } },
+            {returnNewDocument: true } );
         
-        console.log("EVERYTHING WENT SMOOTH(y)LY :^{p")
+        console.log("EVERYTHING WENT SMOOTH(y)LY with user: "+ username + " this was added: " + Object.keys(oneUser));
         return oneUser;
     } catch (err) {
         console.log('a ROAR produced: ' + err);

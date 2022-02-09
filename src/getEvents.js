@@ -201,19 +201,12 @@ async function hitFacebook(username, getAllEvents, lastKnownEventId ) {
     }
 
     let results = [];
-    console.log("__________________________" + getEventDetails({ID:"1083534639057132"}))
+ 
     // order array of events so that oldest event is at index 0 and every new event will be added onto the end of array. 
     for(let i = arrayOfEventObjects.length -1; i >= 0; i--) {
         results.push(await getEventDetails(arrayOfEventObjects[i]));
     }
-    // for (let event of arrayOfEventObjects) {
-    //     results.push(await getEventDetails(event));
-    // }
-    // for (let i = 0; i < results.length; i++) {
-    //     if (results[i].title === undefined) {
-    //         console.log(arrayOfEventObjects[i.ID])
-    //     }
-    // }
+    
     await browser.close();
     return results;
 
