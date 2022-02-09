@@ -13,3 +13,5 @@
 - [x] then update store / database when crawler finishes its work
 - [ ] refactor
 - [ ] deploy
+
+need to finish updateUser function and initialize a userHasEvent function

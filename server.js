@@ -7,7 +7,7 @@ const getEvents = require('./src/getEvents.js');
 
 const PORT = process.env.PORT;
 const app = express();
-app.use(cors());
+// app.use(cors());
 const DB_USERNAME = process.env.DB_USERNAME;
 const DB_PASSWORD = process.env.DB_PASSWORD;
 const uri = `mongodb+srv://${ DB_USERNAME }:${ DB_PASSWORD }@pacificeventsdb.10hpw.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
@@ -15,7 +15,7 @@ const uri = `mongodb+srv://${ DB_USERNAME }:${ DB_PASSWORD }@pacificeventsdb.10h
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 
 
-app.get('/api/v2/getSeedData', async (req, res) => {
+app.get('/api/v2/getSeedData', cors(), async (req, res) => {
     let username = req.query.username.toLowerCase();
     let userDoesExist = await userExists(username);
     let userInfo;
@@ -30,7 +30,7 @@ app.get('/api/v2/getSeedData', async (req, res) => {
         userInfo = JSON.parse(userInfo).performances;
         console.log("USER INFO: ********************** " + userInfo)
 
-        await res.end(JSON.stringify(userInfo));
+        return await res.end(JSON.stringify(userInfo));
     } 
     if ( !userDoesExist ) {
         console.log("user does  N O T  exist in database");
@@ -42,7 +42,7 @@ app.get('/api/v2/getSeedData', async (req, res) => {
         return await insertOneUser(username, arrayOfEventObjects);
     } 
 });
-app.get('/api/v2/getLatestResults', async (req, res) => {
+app.get('/api/v2/getLatestResults', cors(), async (req, res) => {
 
     let username = req.query.username.toLowerCase();
     let userDoesExist = await userExists(username);
@@ -61,33 +61,44 @@ app.get('/api/v2/getLatestResults', async (req, res) => {
     console.log("THIS IS USERINFO BEFORE ANYTHING: " + userInfo)
     userInfo = JSON.parse(userInfo).performances;
 
-
     let lastKnownEventId = userInfo[userInfo.length-1].ID
-    console.log("THIS IS LAST KNOWN IN SERVER.JS: " + lastKnownEventId)
+    console.log("THIS IS LAST KNOWN eventID IN SERVER.JS: " + lastKnownEventId)
     let arrayOfEventObjects = await getEvents(req.query.username.toLowerCase(), false, lastKnownEventId);
-    
+    let lastEventIdFromFacebook = arrayOfEventObjects[arrayOfEventObjects.length - 1].ID ;
 
-    if ( arrayOfEventObjects !== userInfo ) {
-    // if not strictly equal, which performances need to be added?
-    console.log("not strictly equal, which performances need to be added?");
-        let lastEventInDb = userInfo[userInfo.length-1];
-        let startingIndex = arrayOfEventObjects.indexOf(lastEventInDb) + 1;
-        if ( startingIndex >= arrayOfEventObjects.length ) {
-            //events array is different but no new event needs to be added
-            console.log("events array is different but no new event needs to be added");
-            return res.status(200).end(JSON.stringify(userInfo));
-        } else {
-            // add all new events
-            await updateUser ( username, arrayOfEventObjects, userInfo );
-            console.log("added all new events to database");
-            userInfo = await getOneUser(username);
-            userInfo = JSON.parse(userInfo).performances
-            return res.status(200).end(JSON.stringify(userInfo));
-        }
+    if (lastKnownEventId === lastEventIdFromFacebook){
+        // nothing to do here
+        return res.status(200).end(JSON.stringify(userInfo).performances);
     } else {
-        // else strictly equal == no further work required.
-        return res.status(200).end(JSON.stringify(userInfo));
+        // update database with new results and return new document
+        let newDocumentFromUpdate = await updateUser(username, arrayOfEventObjects);
+        console.log("new docccccccccccccccccc:          " + newDocumentFromUpdate)
+        return res.status(200).end(JSON.stringify(newDocumentFromUpdate));
     }
+
+
+
+    // if ( arrayOfEventObjects !== userInfo ) {
+    // // if not strictly equal, which performances need to be added?
+    // console.log("not strictly equal, which performances need to be added?");
+    //     let lastEventInDb = userInfo[userInfo.length-1];
+    //     let startingIndex = arrayOfEventObjects.indexOf(lastEventInDb) + 1;
+    //     if ( startingIndex >= arrayOfEventObjects.length ) {
+    //         //events array is different but no new event needs to be added
+    //         console.log("events array is different but no new event needs to be added");
+    //         return res.status(200).end(JSON.stringify(userInfo));
+    //     } else {
+    //         // add all new events
+    //         await updateUser ( username, arrayOfEventObjects, userInfo );
+    //         console.log("added all new events to database");
+    //         userInfo = await getOneUser(username);
+    //         userInfo = JSON.parse(userInfo).performances
+    //         return res.status(200).end(JSON.stringify(userInfo));
+    //     }
+    // } else {
+    //     // else strictly equal == no further work required.
+    //     return res.status(200).end(JSON.stringify(userInfo));
+    // }
 
 
    
@@ -190,7 +201,7 @@ async function userExists( username ) {
     }
 }
 
-async function updateUser( username, arrayOfEventObjects, userInfo ){
+async function updateUser( username, arrayOfEventObjects ){
     try {
         await client.connect().catch(reason => console.log("this was the reason: " + reason));
         console.log("dbco necked Ted ");
@@ -199,11 +210,12 @@ async function updateUser( username, arrayOfEventObjects, userInfo ){
         let collection = db.collection("users");
         console.log("went full jamba-juice on " + username );
 
-        // const beSilly = await collection.insertOne(oneUser);
-
-        const oneUser =  await collection.findOne({_id: username });
+        const oneUser =  await collection.findOneAndUpdate(
+            {_id: username },
+            { $push: { performances : { $each : arrayOfEventObjects } } },
+            {returnNewDocument: true } );
         
-        console.log("EVERYTHING WENT SMOOTH(y)LY :^{p")
+        console.log("EVERYTHING WENT SMOOTH(y)LY with user: "+ username + " this was added: " + Object.keys(oneUser));
         return oneUser;
     } catch (err) {
         console.log('a ROAR produced: ' + err);
