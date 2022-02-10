@@ -14,6 +14,6 @@
 - [x] refactor
 - [x] refactor
 - [x] cleanup
-- [ ] deploy
+- [x] deploy --> had to add https://github.com/jontewks/puppeteer-heroku-buildpack instead of the puppeteer buildback for success. 
 
 v3 refactor --> initialize a userHasEvent function and find out where to place it and then replace performances array in username document.
