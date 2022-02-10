@@ -74,6 +74,7 @@ async function hitFacebook(username, getAllEvents, lastKnownEventId) {
         let arrayOfEventUrls = [...document.querySelectorAll('._51mx > :nth-child(2) > div > div > a')].map(url => url.href)
         return arrayOfEventUrls;
     })
+    console.log("we've visited a page");
     let regex = /\/events\/\d+\//gi
     rawEventUrl = rawEventUrl.map(url => url.match(regex)[0]); // adding the [0] prevents creating unnecessary nesting of arrays. 
 
