@@ -11,7 +11,9 @@
 - [x] group results by each username
 - [x] use database for initial results
 - [x] then update store / database when crawler finishes its work
-- [ ] refactor
+- [x] refactor
+- [x] refactor
+- [x] cleanup
 - [ ] deploy
 
-need to finish updateUser function and initialize a userHasEvent function
+v3 refactor --> initialize a userHasEvent function and find out where to place it and then replace performances array in username document.
